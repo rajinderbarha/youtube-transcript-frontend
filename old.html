@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Transcript Extractor</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        input, button { margin: 10px; padding: 10px; width: 80%; max-width: 400px; }
+        pre { white-space: pre-wrap; word-wrap: break-word; text-align: left; max-width: 600px; margin: auto; padding: 10px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h2>YouTube Transcript Extractor</h2>
+    <input type="text" id="videoUrl" placeholder="Enter YouTube video URL">
+    <button onclick="fetchTranscript()">Get Transcript</button>
+    <p id="error" style="color: red;"></p>
+    <pre id="transcript"></pre>
+
+    <script>
+        function getVideoId(url) {
+            console.log("Extracting video ID from URL:", url);
+            const match = url.match(/(?:v=|youtu\.be\/|embed\/|\/v\/|\/e\/|watch\?v=|\?v=|&v=)([\w-]{11})/);
+            console.log("Extracted video ID:", match ? match[1] : "None");
+            return match ? match[1] : null;
+        }
+
+        async function fetchTranscript() {
+            document.getElementById('error').innerText = '';
+            document.getElementById('transcript').innerText = '';
+
+            const videoUrl = document.getElementById("videoUrl").value;
+            const videoId = getVideoId(videoUrl);
+            if (!videoId) {
+                document.getElementById('error').innerText = "Invalid YouTube URL";
+                console.error("Invalid YouTube URL:", videoUrl);
+                return;
+            }
+
+            try {
+                console.log("Fetching transcript for video ID:", videoId);
+                const response = await fetch(`http://localhost:3000/transcript?videoId=${videoId}`);
+                console.log("Response status:", response.status);
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.statusText}`);
+                }
+
+                const data = await response.text();
+                console.log("Received transcript data:", data.substring(0, 500)); // Log first 500 characters
+
+                document.getElementById('transcript').innerText = data;
+            } catch (error) {
+                document.getElementById('error').innerText = error.message;
+                console.error("Error fetching transcript:", error);
+            }
+        }
+    </script>
+</body>
+</html>
+
